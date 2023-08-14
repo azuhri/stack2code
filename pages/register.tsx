@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { log } from "console";
 import axios from "axios";
 import type { InferGetStaticPropsType, GetStaticProps, GetServerSideProps } from 'next';
-import Loading from "@/src/components/loading";
+import Loading from "@/src/components/loadingButton";
 import $ from "jquery";
 import { useRouter } from "next/router";
 
@@ -21,6 +21,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
 };
 
 export default function RegisterPage({API}:any) {
+  const [isLoading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [errorName, setErrorName] = useState('');
   const [email, setEmail] = useState('');
@@ -96,6 +97,7 @@ export default function RegisterPage({API}:any) {
       setErrorPasswordConfirmDoesntMatch('');
       
       try {
+        setLoading(true);
         const response = await axios.post(`${API}/api/v1/auth/register`, {
           name, email, password
         });
@@ -103,7 +105,7 @@ export default function RegisterPage({API}:any) {
         $("#responseMessage").html("credentials is valid, success to login");
         $("#responseMessage").removeClass("border-red-500 text-red-500 bg-red-200");
         $("#responseMessage").addClass("border-green-500 text-green-500 bg-green-200");
-        $("#responseMessage").slideDown(500);
+        $("#responseMessage").show(300);
         setTimeout(() => {
           router.push('/login');
         }, 3000);
@@ -113,7 +115,12 @@ export default function RegisterPage({API}:any) {
         $("#responseMessage").html(`${data.message}`);
         $("#responseMessage").removeClass("border-green-500 text-green-500 bg-green-200");
         $("#responseMessage").addClass("border-red-500 text-red-500 bg-red-200");
-        $("#responseMessage").slideDown(500);
+        $("#responseMessage").show(300);
+      } finally {
+        setLoading(false);
+        setTimeout(() => {
+          $("#responseMessage").hide(300);
+        }, 3000);
       }
     }
   } 
@@ -233,9 +240,12 @@ export default function RegisterPage({API}:any) {
             {errorPasswordConfirmDoesntMatch && <span className="mt-1 font-bold text-red-600 text-xs">{errorPasswordConfirmDoesntMatch}</span> }
           </div>
           <div className="mt-10 flex flex-col">
-            <button className="w-full text-center bg-whte border-color-donker bg-color-donker py-4 text-white font-bold rounded-lg">
+            {isLoading ? <button className="w-full text-center bg-whte border-color-donker bg-color-donker py-4 text-white font-bold rounded-lg">
+              <Loading />
+            </button> : <button className="w-full text-center bg-whte border-color-donker bg-color-donker py-4 text-white font-bold rounded-lg">
               Register
-            </button>
+            </button>}
+            
             <span className="text-center mt-2 font-light text-lg text-gray-500">
               already have an account ?{" "}
               <Link
